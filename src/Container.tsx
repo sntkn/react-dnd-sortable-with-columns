@@ -59,16 +59,22 @@ export const Container: FC = () => {
     },
   ])
 
-  const moveCard = useCallback((dragIndex: number, hoverIndex: number) => {
-    setCards((prevCards: Item[]) =>
-      update(prevCards, {
-        $splice: [
-          [dragIndex, 1],
-          [hoverIndex, 0, prevCards[dragIndex] as Item],
-        ],
+  const moveCard = useCallback(
+    (dragIndex: number, hoverIndex: number, columnIndex: number | null) => {
+      setCards((prevCards: Item[]) => {
+        if (columnIndex !== null) {
+          prevCards[dragIndex].column = columnIndex
+        }
+        return update(prevCards, {
+          $splice: [
+            [dragIndex, 1],
+            [hoverIndex, 0, prevCards[dragIndex] as Item],
+          ],
+        })
       })
-    )
-  }, [])
+    },
+    []
+  )
 
   type ColumnType = {
     name: string
@@ -88,13 +94,21 @@ export const Container: FC = () => {
   }, [cards])
 
   const renderCard = useCallback(
-    (card: { id: number; text: string }, index: number) => {
+    (
+      card: { id: number; text: string; column: number },
+      index: number,
+      firstIndex: number,
+      lastIndex: number
+    ) => {
       return (
         <Card
           key={card.id}
           index={index}
           id={card.id}
           text={card.text}
+          column={card.column}
+          firstIndex={firstIndex}
+          lastIndex={lastIndex}
           moveCard={moveCard}
         />
       )
@@ -105,14 +119,21 @@ export const Container: FC = () => {
   let index = 0
   return (
     <div style={{ display: 'flex' }}>
-      {columnInCards.map((column, i) => (
-        <section key={i} style={style}>
-          <div>{column.name}</div>
-          <div style={{ marginTop: '.5rem', minHeight: '10rem' }}>
-            {column.items.map((card) => renderCard(card, index++))}
-          </div>
-        </section>
-      ))}
+      {columnInCards.map((column, i) => {
+        const firstIndex = index
+        const lastIndex =
+          index + (column.items.length ? column.items.length - 1 : 0)
+        return (
+          <section key={i} style={style}>
+            <div>{column.name}</div>
+            <div style={{ marginTop: '.5rem', minHeight: '10rem' }}>
+              {column.items.map((card) =>
+                renderCard(card, index++, firstIndex, lastIndex)
+              )}
+            </div>
+          </section>
+        )
+      })}
     </div>
   )
 }

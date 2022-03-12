@@ -15,16 +15,34 @@ export interface CardProps {
   id: any
   text: string
   index: number
-  moveCard: (dragIndex: number, hoverIndex: number) => void
+  column: number
+  firstIndex: number
+  lastIndex: number
+  moveCard: (
+    dragIndex: number,
+    hoverIndex: number,
+    columnIndex: number | null
+  ) => void
 }
 
 interface DragItem {
   index: number
   id: string
+  column: number
+  firstIndex: number
+  lastIndex: number
   type: string
 }
 
-export const Card: FC<CardProps> = ({ id, text, index, moveCard }) => {
+export const Card: FC<CardProps> = ({
+  id,
+  text,
+  index,
+  moveCard,
+  column,
+  firstIndex,
+  lastIndex,
+}) => {
   const ref = useRef<HTMLDivElement>(null)
   const [{ handlerId }, drop] = useDrop<
     DragItem,
@@ -46,6 +64,14 @@ export const Card: FC<CardProps> = ({ id, text, index, moveCard }) => {
 
       // Don't replace items with themselves
       if (dragIndex === hoverIndex) {
+        return
+      }
+
+      if (item.column !== column) {
+        const toIndex = item.column > column ? item.firstIndex : item.lastIndex
+        moveCard(dragIndex, toIndex, column)
+        item.column = column
+        item.index = toIndex
         return
       }
 
@@ -77,7 +103,7 @@ export const Card: FC<CardProps> = ({ id, text, index, moveCard }) => {
       }
 
       // Time to actually perform the action
-      moveCard(dragIndex, hoverIndex)
+      moveCard(dragIndex, hoverIndex, null)
 
       // Note: we're mutating the monitor item here!
       // Generally it's better to avoid mutations,
@@ -90,8 +116,9 @@ export const Card: FC<CardProps> = ({ id, text, index, moveCard }) => {
   const [{ isDragging }, drag] = useDrag({
     type: ItemTypes.CARD,
     item: () => {
-      return { id, index }
+      return { id, index, column, firstIndex, lastIndex }
     },
+    isDragging: (monitor) => monitor.getItem().id === id,
     collect: (monitor: any) => ({
       isDragging: monitor.isDragging(),
     }),
