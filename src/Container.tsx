@@ -1,6 +1,7 @@
 import { FC, useState, useCallback, useEffect } from 'react'
 import { Card } from './Card'
 import update from 'immutability-helper'
+import { EmptyCard } from './EmptyCard'
 
 const style = {
   width: 400,
@@ -126,11 +127,17 @@ export const Container: FC = () => {
         return (
           <section key={i} style={style}>
             <div>{column.name}</div>
-            <div style={{ marginTop: '.5rem', minHeight: '10rem' }}>
+            <div style={{ marginTop: '.5rem' }}>
               {column.items.map((card) =>
                 renderCard(card, index++, firstIndex, lastIndex)
               )}
             </div>
+            <EmptyCard
+              column={i}
+              firstIndex={firstIndex}
+              lastIndex={lastIndex}
+              moveCard={moveCard}
+            />
           </section>
         )
       })}
