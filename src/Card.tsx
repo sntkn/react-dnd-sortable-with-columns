@@ -1,7 +1,7 @@
 import { FC, useRef } from 'react'
 import { useDrag, useDrop } from 'react-dnd'
 import type { XYCoord, Identifier } from 'dnd-core'
-import { ItemTypes } from './ItemTypes'
+import { ItemTypes, DragItem } from './ItemTypes'
 
 const style = {
   border: '1px dashed gray',
@@ -23,15 +23,6 @@ export interface CardProps {
     hoverIndex: number,
     columnIndex: number | null
   ) => void
-}
-
-interface DragItem {
-  index: number
-  id: string
-  column: number
-  firstIndex: number
-  lastIndex: number
-  type: string
 }
 
 export const Card: FC<CardProps> = ({

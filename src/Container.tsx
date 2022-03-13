@@ -1,7 +1,7 @@
 import { FC, useState, useCallback, useEffect } from 'react'
-import { Card } from './Card'
 import update from 'immutability-helper'
-import { EmptyCard } from './EmptyCard'
+import { Droppable } from './Droppable'
+import { Card } from './Card'
 
 const style = {
   width: 400,
@@ -63,13 +63,16 @@ export const Container: FC = () => {
   const moveCard = useCallback(
     (dragIndex: number, hoverIndex: number, columnIndex: number | null) => {
       setCards((prevCards: Item[]) => {
-        if (columnIndex !== null) {
-          prevCards[dragIndex].column = columnIndex
-        }
-        return update(prevCards, {
+        const newCards =
+          columnIndex !== null
+            ? update(prevCards, {
+                [dragIndex]: { column: { $set: columnIndex } },
+              })
+            : prevCards
+        return update(newCards, {
           $splice: [
             [dragIndex, 1],
-            [hoverIndex, 0, prevCards[dragIndex] as Item],
+            [hoverIndex, 0, newCards[dragIndex] as Item],
           ],
         })
       })
@@ -86,12 +89,12 @@ export const Container: FC = () => {
 
   useEffect(() => {
     const columns = ['Todo', 'Doing', 'Done']
-    setColumnInCards(() => {
-      return columns.map((name, i) => ({
+    setColumnInCards(() =>
+      columns.map((name, i) => ({
         name,
         items: cards.filter((v) => v.column === i),
       }))
-    })
+    )
   }, [cards])
 
   const renderCard = useCallback(
@@ -114,7 +117,7 @@ export const Container: FC = () => {
         />
       )
     },
-    []
+    [moveCard]
   )
 
   let index = 0
@@ -132,12 +135,7 @@ export const Container: FC = () => {
                 renderCard(card, index++, firstIndex, lastIndex)
               )}
             </div>
-            <EmptyCard
-              column={i}
-              firstIndex={firstIndex}
-              lastIndex={lastIndex}
-              moveCard={moveCard}
-            />
+            <Droppable column={i} moveCard={moveCard} />
           </section>
         )
       })}
